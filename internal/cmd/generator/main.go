@@ -44,16 +44,28 @@ var keywords = map[string]bool{
 	"var":         true,
 }
 
+func cutResourceName(s string) string {
+	s = strings.TrimLeft(s, "resource")
+	s = strings.TrimRight(s, "Svg")
+	s = strings.ToLower(s)
+	if _, exist := keywords[s]; exist {
+		s += "_"
+	}
+	return s
+}
+
+func createGetterFuncName(s string) (string, string) {
+	if _, exist := keywords[s[:len(s)-1]]; exist {
+		s = s[:len(s)-1]
+	}
+	s = strings.Title(s)
+	return s + "Icon", s
+}
+
 func generateIconsFile(vars []string) error {
 	names := make([]string, 0, len(vars))
 	for _, v := range vars {
-		s := strings.TrimLeft(v, "resource")
-		s = strings.TrimRight(s, "Svg")
-		s = strings.ToLower(s)
-		if _, exist := keywords[s]; exist {
-			s += "_"
-		}
-		names = append(names, s)
+		names = append(names, cutResourceName(v))
 	}
 	var buf bytes.Buffer
 	buf.WriteString("// AUTO-GENERATED: DO NOT EDIT")
@@ -73,12 +85,9 @@ func generateIconsFile(vars []string) error {
 	}
 	buf.WriteString("\n}")
 	for _, n := range names {
-		un := strings.Title(n)
-		if _, exist := keywords[n[:len(n)-1]]; exist {
-			un = un[:len(un)-1]
-		}
-		buf.WriteString("\n// " + un + "Icon returns " + un + " icon resource")
-		buf.WriteString("\nfunc " + un + "Icon() fyne.Resource {")
+		f, s := createGetterFuncName(n)
+		buf.WriteString("\n// " + f + " returns " + s + " icon resource")
+		buf.WriteString("\nfunc " + f + "() fyne.Resource {")
 		buf.WriteString("\nreturn " + n)
 		buf.WriteString("\n}")
 	}
