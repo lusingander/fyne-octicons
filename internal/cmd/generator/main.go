@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -67,29 +68,31 @@ func generateIconsFile(vars []string) error {
 	for _, v := range vars {
 		names = append(names, cutResourceName(v))
 	}
-	var buf bytes.Buffer
-	buf.WriteString("// AUTO-GENERATED: DO NOT EDIT")
-	buf.WriteString("\n\npackage octicons")
-	buf.WriteString("\n\nimport (")
-	buf.WriteString("\n\"fyne.io/fyne\"")
-	buf.WriteString("\n\"fyne.io/fyne/theme\"")
-	buf.WriteString("\n)")
-	buf.WriteString("\nvar (")
+	buf := newBufferWrapper()
+	buf.writeln("// AUTO-GENERATED: DO NOT EDIT")
+	buf.writeln("")
+	buf.writeln("package octicons")
+	buf.writeln("")
+	buf.writeln("import (")
+	buf.writeln("\"fyne.io/fyne\"")
+	buf.writeln("\"fyne.io/fyne/theme\"")
+	buf.writeln(")")
+	buf.writeln("var (")
 	for _, n := range names {
-		buf.WriteString("\n" + n + " *theme.ThemedResource")
+		buf.writeln("%s *theme.ThemedResource", n)
 	}
-	buf.WriteString("\n)")
-	buf.WriteString("\nfunc init() {")
+	buf.writeln(")")
+	buf.writeln("func init() {")
 	for i, n := range names {
-		buf.WriteString("\n" + n + " = theme.NewThemedResource(" + vars[i] + ", nil)")
+		buf.writeln("%s = theme.NewThemedResource(%s, nil)", n, vars[i])
 	}
-	buf.WriteString("\n}")
+	buf.writeln("}")
 	for _, n := range names {
 		f, s := createGetterFuncName(n)
-		buf.WriteString("\n// " + f + " returns " + s + " icon resource")
-		buf.WriteString("\nfunc " + f + "() fyne.Resource {")
-		buf.WriteString("\nreturn " + n)
-		buf.WriteString("\n}")
+		buf.writeln("// %s returns %s icon resource", f, s)
+		buf.writeln("func %s() fyne.Resource {", f)
+		buf.writeln("return %s", n)
+		buf.writeln("}")
 	}
 	source, err := format.Source(buf.Bytes())
 	if err != nil {
@@ -120,6 +123,18 @@ func listVariables() ([]string, error) {
 		return true
 	})
 	return variables, nil
+}
+
+type bufferWrapper struct {
+	*bytes.Buffer
+}
+
+func newBufferWrapper() *bufferWrapper {
+	return &bufferWrapper{&bytes.Buffer{}}
+}
+
+func (b *bufferWrapper) writeln(s string, a ...interface{}) {
+	b.WriteString(fmt.Sprintf(s+"\n", a...))
 }
 
 func run(args []string) error {
