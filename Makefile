@@ -1,4 +1,4 @@
-.PHONY: bundle generator generate
+.PHONY: run bundle generator generate clean
 
 generate: bundle generator
 	./generator
@@ -8,6 +8,9 @@ bundle:
 
 generator:
 	go build -o generator ./internal/cmd/generator
+
+run: generate
+	go run internal/cmd/fyne-octicons/*.go
 
 clean:
 	rm generator

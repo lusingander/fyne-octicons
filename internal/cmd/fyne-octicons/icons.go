@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fyne.io/fyne"
+	"fyne.io/fyne/v2"
 	octicons "github.com/lusingander/fyne-octicons"
 )
 

@@ -74,8 +74,8 @@ func generateIconsFile(vars []string) error {
 	buf.writeln("package octicons")
 	buf.writeln("")
 	buf.writeln("import (")
-	buf.writeln("\"fyne.io/fyne\"")
-	buf.writeln("\"fyne.io/fyne/theme\"")
+	buf.writeln("\"fyne.io/fyne/v2\"")
+	buf.writeln("\"fyne.io/fyne/v2/theme\"")
 	buf.writeln(")")
 	buf.writeln("var (")
 	for _, n := range names {
@@ -84,7 +84,7 @@ func generateIconsFile(vars []string) error {
 	buf.writeln(")")
 	buf.writeln("func init() {")
 	for i, n := range names {
-		buf.writeln("%s = theme.NewThemedResource(%s, nil)", n, vars[i])
+		buf.writeln("%s = theme.NewThemedResource(%s)", n, vars[i])
 	}
 	buf.writeln("}")
 	for _, n := range names {
